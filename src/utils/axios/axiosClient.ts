@@ -9,4 +9,10 @@ const axiosClient = axios.create({
   },
 });
 
+export const axiosFileClient = axios.create({
+  baseURL: baseURL,
+  headers: {
+    "Content-Type": "multipart/form-data",
+  },
+});
 export default axiosClient;

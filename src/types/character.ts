@@ -5,7 +5,7 @@ export interface charaType {
   hasSpecialBase?: boolean;
 }
 
-export type response = {
+export type charactersType = {
   [code: number]: charaType;
 };
 

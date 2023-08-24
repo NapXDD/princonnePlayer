@@ -6,3 +6,7 @@ export const sliceCyspAnimation = (buffer: ArrayBuffer) => {
     data: buffer.slice((count + 1) * 32),
   };
 };
+
+export const getClass = (i: number) => {
+  return (i < 10 ? "0" : "") + i;
+};

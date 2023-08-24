@@ -1,9 +1,15 @@
 import { AxiosResponse } from "axios";
-import axiosClient from "./axiosClient";
-import { response } from "../../types/character";
+import axiosClient, { axiosFileClient } from "./axiosClient";
+import { charactersType } from "../../types/character";
 
 export function getClassMap(
   url: string
-): Promise<AxiosResponse<response, response>> {
+): Promise<AxiosResponse<charactersType, charactersType>> {
   return axiosClient.get(url);
+}
+
+export function getBinaryFile(
+  url: string
+): Promise<AxiosResponse<ArrayBuffer, ArrayBuffer>> {
+  return axiosFileClient.get(url);
 }

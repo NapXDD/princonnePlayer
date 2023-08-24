@@ -1,11 +1,17 @@
 import { configureStore } from "@reduxjs/toolkit";
 import unitStateReducer from "./features/unit/unit";
 import canvasStateReducer from "./features/canvas/canvas";
+import loadingSkeletonReducer from "./features/spine/loadingSkeleton";
+import windowLoadingReducer from "./features/window/loading";
+import classMapReducer from "./features/classMap/classMap";
 
 export const store = configureStore({
   reducer: {
     unitState: unitStateReducer,
     canvasState: canvasStateReducer,
+    loadingSkeleton: loadingSkeletonReducer,
+    windowLoading: windowLoadingReducer,
+    classMap: classMapReducer,
   },
 });
 

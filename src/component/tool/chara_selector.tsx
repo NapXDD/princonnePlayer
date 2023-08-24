@@ -1,11 +1,11 @@
 import { Box, Button, Select } from "@chakra-ui/react";
-import { ChangeEvent, Fragment, useEffect, useState } from "react";
+import { ChangeEvent, Fragment, useEffect } from "react";
 import { getClassMap } from "../../utils/axios/axiosGet";
-import { response } from "../../types/character";
 import { dataList } from "../../types/selector";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { updateUnit } from "../../redux/features/unit/unit";
+import { setClassMap } from "../../redux/features/classMap/classMap";
 
 const charaList: dataList[] = [
   {
@@ -31,18 +31,16 @@ const charaList: dataList[] = [
 ];
 
 export default function CharaSelector() {
-  const [charactersData, setCharactersData] = useState<response | null>(null);
+  const charactersData = useSelector((state: RootState) => state.classMap);
   const unitState = useSelector((state: RootState) => state.unitState);
   const dispatch = useDispatch();
 
-  console.log(unitState);
-
-  const baseId = charactersData && Object.keys(charactersData);
+  const baseId = Object.keys(charactersData) && Object.keys(charactersData);
 
   const handleGetClassData = async () => {
     try {
-      const { data } = await getClassMap("classMap.json");
-      setCharactersData(data);
+      const { data } = await getClassMap("classMap/classMap.json");
+      dispatch(setClassMap(data));
     } catch (e) {
       console.log(e);
     }
