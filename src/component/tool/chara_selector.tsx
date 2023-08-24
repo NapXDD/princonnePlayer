@@ -37,15 +37,6 @@ export default function CharaSelector() {
 
   const baseId = Object.keys(charactersData) && Object.keys(charactersData);
 
-  const handleGetClassData = async () => {
-    try {
-      const { data } = await getClassMap("classMap/classMap.json");
-      dispatch(setClassMap(data));
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
   const handleSelector = (event: ChangeEvent<HTMLSelectElement>) => {
     const unitData = {
       ...unitState,
@@ -55,7 +46,14 @@ export default function CharaSelector() {
   };
 
   useEffect(() => {
-    handleGetClassData();
+    async () => {
+      try {
+        const { data } = await getClassMap("classMap/classMap.json");
+        dispatch(setClassMap(data));
+      } catch (e) {
+        console.log(e);
+      }
+    };
   }, []);
 
   return (
