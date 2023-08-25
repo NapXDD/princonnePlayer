@@ -10,8 +10,8 @@ export type charactersType = {
 };
 
 export interface UnitState {
-  baseId: string;
-  weaponType: string;
+  id: string;
+  classType: string;
   animation: string;
   animationSpeed: string;
 }

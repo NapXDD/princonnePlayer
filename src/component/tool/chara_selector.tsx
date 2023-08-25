@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { updateUnit } from "../../redux/features/unit/unit";
 import { setClassMap } from "../../redux/features/classMap/classMap";
+import { updateLoadingSkeleton } from "../../redux/features/spine/loadingSkeleton";
 
 const charaList: dataList[] = [
   {
@@ -33,27 +34,45 @@ const charaList: dataList[] = [
 export default function CharaSelector() {
   const charactersData = useSelector((state: RootState) => state.classMap);
   const unitState = useSelector((state: RootState) => state.unitState);
+  const loadingSkeleton = useSelector(
+    (state: RootState) => state.loadingSkeleton
+  );
   const dispatch = useDispatch();
 
   const baseId = Object.keys(charactersData) && Object.keys(charactersData);
 
   const handleSelector = (event: ChangeEvent<HTMLSelectElement>) => {
+    const baseId = `${event.target.value.slice(0, 4)}01`;
+    const currentUnit = {
+      id: event.target.value,
+      classType: charactersData[parseInt(event.target.value)],
+    };
     const unitData = {
       ...unitState,
-      baseId: event.target.value,
+      id: currentUnit.id,
+      classType: currentUnit.classType,
     };
+    const skeletonData = {
+      ...loadingSkeleton,
+      id: currentUnit.id,
+      info: charactersData[parseInt(baseId)],
+      baseId: "000000",
+    };
+    dispatch(updateLoadingSkeleton(skeletonData));
     dispatch(updateUnit(unitData));
   };
 
+  const handleGetClassMap = async () => {
+    try {
+      const { data } = await getClassMap("classMap/classMap.json");
+      dispatch(setClassMap(data));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
-    async () => {
-      try {
-        const { data } = await getClassMap("classMap/classMap.json");
-        dispatch(setClassMap(data));
-      } catch (e) {
-        console.log(e);
-      }
-    };
+    handleGetClassMap();
   }, []);
 
   return (
@@ -73,7 +92,7 @@ export default function CharaSelector() {
                 borderColor={"black"}
                 bg={"white"}
                 id="skeletonList"
-                value={unitState.baseId}
+                value={unitState.id}
                 onChange={(e) => handleSelector(e)}
               >
                 {baseId &&
@@ -124,6 +143,7 @@ export default function CharaSelector() {
                 borderColor={"black"}
                 bg={"white"}
                 paddingRight={1}
+                value={loadingSkeleton.info.type}
                 disabled
               >
                 {charaList.map((item, index) => (

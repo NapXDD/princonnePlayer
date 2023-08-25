@@ -2,10 +2,10 @@ import { createSlice } from "@reduxjs/toolkit";
 import { UnitState } from "../../../types/character";
 
 const initialState: UnitState = {
-  baseId: "100111",
+  id: "100111",
   animation: "idle",
   animationSpeed: "1",
-  weaponType: "1",
+  classType: "1",
 };
 
 export const unitState = createSlice({
@@ -15,10 +15,10 @@ export const unitState = createSlice({
     updateUnit: (state, action) => {
       return {
         ...state,
-        baseId: action.payload.baseId,
+        id: action.payload.baseId,
         animation: action.payload.animation,
         animationSpeed: action.payload.animationSpeed,
-        weaponType: action.payload.weaponType,
+        classType: action.payload.classType,
       };
     },
   },

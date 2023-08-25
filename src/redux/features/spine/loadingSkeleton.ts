@@ -1,7 +1,7 @@
 import { charaType } from "./../../../types/character";
 import { createSlice } from "@reduxjs/toolkit";
 
-interface loadingSkeleton {
+export interface loadingSkeleton {
   id: number;
   info: charaType;
   baseId: "000000";

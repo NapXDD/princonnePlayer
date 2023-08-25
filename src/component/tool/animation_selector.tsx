@@ -6,19 +6,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { CanvasState } from "../../types/canvas";
 import { ChangeEvent } from "react";
-import { updateCanvas } from "../../redux/features/canvas/canvas";
+import { updateCanvas } from "../../redux/features/canvas/canvasState";
 import { UnitState } from "../../types/character";
 import { updateUnit } from "../../redux/features/unit/unit";
 
 const animationList: dataList[] = [
-  {
-    value: "idle",
-    label: "idle",
-  },
-  {
-    value: "standBy",
-    label: "stand by",
-  },
+  { value: "idle", label: "idle" },
+  { value: "standBy", label: "stand by" },
   { value: "walk", label: "walk" },
   { value: "run_gamestart", label: "run gamestart" },
   { value: "landing", label: "landing" },
@@ -34,14 +28,8 @@ const animationList: dataList[] = [
 ];
 
 const speedList: dataList[] = [
-  {
-    value: "0.016",
-    label: "0.016x",
-  },
-  {
-    value: "0.1",
-    label: "0.1x",
-  },
+  { value: "0.016", label: "0.016x" },
+  { value: "0.1", label: "0.1x" },
   { value: "0.25", label: "0.25x" },
   { value: "0.5", label: "0.5x" },
   { value: "0.75", label: "0.75x" },
@@ -87,6 +75,7 @@ export default function AnimationSelector() {
     };
     dispatch(updateUnit(unitData));
   };
+
   return (
     <>
       <div id="animation-selector" className="flex justify-center items-center">
