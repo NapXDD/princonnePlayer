@@ -1,12 +1,19 @@
-import { loadingSkeleton } from "./../../redux/features/spine/loadingSkeleton";
-import { generalAdditionAnimations } from "./../../redux/features/generalAdditionAnimations/generalAdditionAnimations";
-import { loadingSkeleton } from "../../redux/features/spine/loadingSkeleton";
-import { additionAnimations } from "../../constant/additionalAnimations";
 import loadData from "../loadData";
 import { getBinaryFile } from "../axios/axiosGet";
-import { classAnimData } from "../../redux/features/classAnimData/classAnimData";
-import { UnitState } from "../../types/character";
-import { charaAnimData } from "../../redux/features/charaAnimData/charaAnimData";
+import { store } from "../../redux/store";
+import { additionAnimations } from "./../../constant/additionalAnimations";
+import { setGeneralAdditionAnimations } from "../../redux/features/generalAdditionAnimations/generalAdditionAnimations";
+import { setCharaData } from "../../redux/features/charaAnimData/charaAnimData";
+import { setClassData } from "../../redux/features/classAnimData/classAnimData";
+import { setGeneralBattleSkeletonData } from "../../redux/features/generalBattleSkeletonData/generalBattleSkeletonData";
+
+const generalAdditionAnimations = store.getState().generalAdditionAnimations;
+const unitState = store.getState().unitState;
+const classAnimData = store.getState().classAnimData;
+const charaAnimData = store.getState().charaAnimation;
+const loadingSkeleton = store.getState().loadingSkeleton;
+const generalBattleSkeonData = store.getState().generalBattleSkeonData;
+const dispatch = store.dispatch;
 
 export const sliceCyspAnimation = (buffer: ArrayBuffer) => {
   const view = new DataView(buffer);
@@ -21,61 +28,89 @@ export const getClass = (i: number) => {
   return (i < 10 ? "0" : "") + i;
 };
 
-export const load = (unit_id: string, class_id: string) => {
+export const loadDefaultCharaBaseData = async () => {
+  const baseId = "000000";
+  const response = await getBinaryFile(
+    `assets/common/${baseId}_CHARA_BASE.cysp`
+  );
+  if (response.data === null) {
+    console.error("No data");
+    return;
+  }
+  const data = {
+    id: baseId,
+    data: response.data,
+  };
+  dispatch(setGeneralBattleSkeletonData(data));
+};
+
+export const loadDefaultAdditionalAnimation = () => {
+  const baseId = "000000";
+  additionAnimations.map(async (animation) => {
+    const response = await getBinaryFile(
+      `assets/common/${baseId}_${animation.type}.cysp`
+    );
+    const data = {
+      id: baseId,
+      data: response.data,
+      additionType: animation.type,
+    };
+    dispatch(setGeneralAdditionAnimations(data));
+  });
+};
+
+export const load = async () => {
   // const loading = useSelector((state: RootState) => state.windowLoading)
   // if(loading) return
-  console.log(unit_id, class_id);
+
+  const baseId = parseInt(loadingSkeleton.baseId);
+  console.log(baseId);
+  if (Object.keys(generalBattleSkeonData)[baseId].length === 0) {
+    const response = await getBinaryFile(
+      `assets/common/${baseId}_CHARA_BASE.cysp`
+    );
+    if (response.data === null) {
+      console.error("No data");
+      return;
+    }
+    dispatch(setGeneralBattleSkeletonData(response.data));
+    // loadAdditionAnimation();
+  }
 };
 
-export const loadAdditionAnimation = (
-  loadingSkeleton: loadingSkeleton,
-  generalAdditionAnimations: generalAdditionAnimations[],
-  classAnimData: classAnimData,
-  unitState: UnitState,
-  charaAnimData: charaAnimData
-) => {
+export const loadAdditionAnimation = () => {
   let doneCount = 0;
+  const loadingSkeleton = store.getState().loadingSkeleton;
   const baseId = loadingSkeleton.baseId;
-  additionAnimations.forEach((animation) => {
-    if (generalAdditionAnimations[parseInt(baseId)][parseInt(animation)])
+  additionAnimations.forEach(async (animation) => {
+    if (generalAdditionAnimations[parseInt(baseId)][animation.value])
       return doneCount++;
-    loadData(
-      getBinaryFile(`/assets/common/${baseId}_${animation}.cysp`),
-      (responseData) => {
-        if (responseData === null) {
-          console.error("No data");
-        } else {
-          generalAdditionAnimations[parseInt(baseId)][parseInt(animation)] =
-            sliceCyspAnimation(responseData);
-          if (++doneCount === additionAnimations.length) {
-            loadClassAnimation(
-              classAnimData,
-              unitState,
-              charaAnimData,
-              loadingSkeleton
-            );
-          }
-        }
-      }
+    const request = await getBinaryFile(
+      `/assets/common/${baseId}_${animation}.cysp`
     );
+    if (request.data === null) {
+      console.error("No data");
+    } else {
+      console.log(request);
+      // store.dispatch(
+      //   setGeneralAdditionAnimations(sliceCyspAnimation(request.data))
+      // );
+      // if (++doneCount === additionAnimations.length) {
+      //   loadClassAnimation(
+      //     classAnimData,
+      //     unitState,
+      //     charaAnimData,
+      //     loadingSkeleton
+      //   );
+      // }
+    }
   });
-  if (doneCount === additionAnimations.length)
-    return loadClassAnimation(
-      classAnimData,
-      unitState,
-      charaAnimData,
-      loadingSkeleton
-    );
+  if (doneCount === additionAnimations.length) return loadClassAnimation();
 };
 
-export const loadClassAnimation = (
-  classAnimData: classAnimData,
-  unitState: UnitState,
-  charaAnimData: charaAnimData,
-  loadingSkeleton: loadingSkeleton
-) => {
+export const loadClassAnimation = () => {
   if (classAnimData.type === unitState.classType) {
-    loadCharaSkillAnimation(charaAnimData, loadingSkeleton);
+    loadCharaSkillAnimation();
   } else {
     const classData = getClass(parseInt(unitState.classType));
     loadData(
@@ -84,21 +119,19 @@ export const loadClassAnimation = (
         if (responseData === null) {
           console.error("No data");
         } else {
-          classAnimData = {
+          const data = {
             type: unitState.classType,
             data: sliceCyspAnimation(responseData),
           };
-          loadCharaSkillAnimation(charaAnimData, loadingSkeleton);
+          store.dispatch(setClassData(data));
+          loadCharaSkillAnimation();
         }
       }
     );
   }
 };
 
-export const loadCharaSkillAnimation = (
-  charaAnimData: charaAnimData,
-  loadingSkeleton: loadingSkeleton
-) => {
+export const loadCharaSkillAnimation = () => {
   let baseUnitId = loadingSkeleton.id;
   baseUnitId -= (baseUnitId % 100) - 1;
   if (charaAnimData.id == baseUnitId.toString()) {
@@ -107,37 +140,16 @@ export const loadCharaSkillAnimation = (
     loadData(
       getBinaryFile(`assets/unit/${baseUnitId}_BATTLE.cysp`),
       (responseData) => {
-        charaAnimData = {
+        const data = {
           id: baseUnitId.toString(),
           data: sliceCyspAnimation(responseData),
         };
+        store.dispatch(setCharaData(data));
+
         loadTexture();
       }
     );
   }
 };
 
-export const loadTexture = (loadingSkeleton: loadingSkeleton) => {
-  loadData(
-    getBinaryFile(`assets/unit/${loadingSkeleton.id}.atlas`),
-    (responseData) => {
-      if (responseData === null) {
-        console.error("No data");
-      } else {
-        loadData(
-          getBinaryFile(`assets/unit/${loadingSkeleton.id}.png`),
-          (responseData) => {
-            const img = new Image();
-            img.onload = () => {
-              const created = !!window.skeleton.skeleton;
-              if (created) {
-                window.skeleton.state.clearTracks();
-                window.skeleton.state.clearListeners();
-              }
-            };
-          }
-        );
-      }
-    }
-  );
-};
+export const loadTexture = () => {};

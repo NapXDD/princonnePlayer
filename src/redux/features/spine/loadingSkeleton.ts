@@ -4,7 +4,7 @@ import { createSlice } from "@reduxjs/toolkit";
 export interface loadingSkeleton {
   id: number;
   info: charaType;
-  baseId: "000000";
+  baseId: string;
 }
 
 const initialState: loadingSkeleton = {

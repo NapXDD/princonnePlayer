@@ -1,16 +1,20 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-interface generalBattleSkeletonData {
-  [code: number]: object;
+interface action {
+  payload: {
+    id: string;
+    data: ArrayBuffer;
+  };
 }
-const initialState: generalBattleSkeletonData[] = [{}];
+
+const initialState: Record<string, ArrayBuffer> = {};
 
 export const generalBattleSkeletonData = createSlice({
   name: "generalBattleSkeletonData",
   initialState,
   reducers: {
-    setGeneralBattleSkeletonData: (state, action) => {
-      state = action.payload;
+    setGeneralBattleSkeletonData: (state, action: action) => {
+      state[action.payload.id] = action.payload.data;
       return state;
     },
   },

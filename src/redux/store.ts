@@ -21,6 +21,7 @@ export const store = configureStore({
     generalAdditionAnimations: generalAdditionAnimationsReducer,
     generalBattleSkeonData: generalBattleSkeonDataReducer,
   },
+  devTools: {},
 });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

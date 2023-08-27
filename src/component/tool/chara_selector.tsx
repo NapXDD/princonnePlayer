@@ -56,7 +56,7 @@ export default function CharaSelector() {
       ...loadingSkeleton,
       id: currentUnit.id,
       info: charactersData[parseInt(baseId)],
-      baseId: "000000",
+      baseId: baseId,
     };
     dispatch(updateLoadingSkeleton(skeletonData));
     dispatch(updateUnit(unitData));

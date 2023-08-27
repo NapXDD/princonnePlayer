@@ -1,17 +1,28 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-export interface generalAdditionAnimations {
-  [code: number]: object;
+interface action {
+  payload: {
+    id: string;
+    data: ArrayBuffer;
+    additionType: string;
+  };
 }
 
-const initialState: generalAdditionAnimations = [{}];
+interface additionType {
+  [code: string]: ArrayBuffer;
+}
+
+const initialState: Record<string, additionType> = {};
 
 export const generalAdditionAnimations = createSlice({
   name: "generalAdditionAnimations",
   initialState,
   reducers: {
-    setGeneralAdditionAnimations: (state, action) => {
-      state = action.payload;
+    setGeneralAdditionAnimations: (state, action: action) => {
+      state[action.payload.id] = {
+        ...state[action.payload.id],
+        [action.payload.additionType]: action.payload.data,
+      };
       return state;
     },
   },
