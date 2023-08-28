@@ -1,14 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-export interface classAnimData {
-  type: string;
-  data: object;
-}
-
-const initialState: classAnimData = {
-  type: "0",
-  data: {},
-};
+const initialState = "1";
 export const classAnimData = createSlice({
   name: "classAnimData",
   initialState,

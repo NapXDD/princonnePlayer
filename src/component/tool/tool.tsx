@@ -4,10 +4,7 @@ import CharaSelector from "./chara_selector";
 import { useEffect } from "react";
 import { RootState } from "../../redux/store";
 import { useSelector } from "react-redux";
-import {
-  loadDefaultAdditionalAnimation,
-  loadDefaultCharaBaseData,
-} from "../../utils/animation/animation";
+import { animation } from "../../utils/animation/animation";
 
 export default function Tool() {
   const loadingSkeleton = useSelector(
@@ -23,12 +20,11 @@ export default function Tool() {
     (state: RootState) => state.generalAdditionAnimations
   );
 
-  useEffect(() => {
-    loadDefaultCharaBaseData();
-    loadDefaultAdditionalAnimation();
-  }, []);
+  useEffect(() => {}, []);
 
-  useEffect(() => {}, [loadingSkeleton, unitState]);
+  useEffect(() => {
+    animation.loadTexture();
+  }, [loadingSkeleton, unitState]);
 
   return (
     <Box className="flex-col flex-wrap justify-center items-center">
