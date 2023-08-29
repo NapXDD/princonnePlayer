@@ -12,19 +12,11 @@ export default function Tool() {
   );
   const unitState = useSelector((state: RootState) => state.unitState);
 
-  const generalBattleSkeletonData = useSelector(
-    (state: RootState) => state.generalBattleSkeonData
-  );
-
-  const generalAdditionAnimations = useSelector(
-    (state: RootState) => state.generalAdditionAnimations
-  );
-
-  useEffect(() => {}, []);
-
   useEffect(() => {
-    animation.loadTexture();
-  }, [loadingSkeleton, unitState]);
+    animation.init();
+  }, []);
+
+  useEffect(() => {}, [loadingSkeleton, unitState]);
 
   return (
     <Box className="flex-col flex-wrap justify-center items-center">

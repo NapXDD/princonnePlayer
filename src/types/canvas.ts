@@ -1,4 +1,4 @@
 export interface CanvasState {
-  canvasBG: string;
+  canvasBG: string[];
   showNode: boolean;
 }

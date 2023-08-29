@@ -45,9 +45,13 @@ export default function AnimationSelector() {
   const dispatch = useDispatch();
 
   const handleChangeBG = (event: ChangeEvent<HTMLInputElement>) => {
+    const result = [];
+    for (let i = 0; i < 6; i += 2) {
+      result.push(event.target.value.slice(i, i + 2));
+    }
     const canvasData: CanvasState = {
       ...canvasState,
-      canvasBG: event.target.value,
+      canvasBG: result,
     };
     dispatch(updateCanvas(canvasData));
   };

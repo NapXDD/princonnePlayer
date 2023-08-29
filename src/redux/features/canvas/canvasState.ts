@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { CanvasState } from "../../../types/canvas";
 
 const initialState: CanvasState = {
-  canvasBG: "606060",
+  canvasBG: [],
   showNode: false,
 };
 

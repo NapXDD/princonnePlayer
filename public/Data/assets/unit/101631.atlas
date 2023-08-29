@@ -13,7 +13,7 @@ Ex0001
   index: -1
 Ex0002
   rotate: false
-  xy: 334, 47
+  xy: 307, 62
   size: 27, 26
   orig: 455, 456
   offset: 214, 215
@@ -201,6 +201,20 @@ acce05_back
   offset: 0, 0
   index: -1
 crotch
+  rotate: false
+  xy: 82, 294
+  size: 1, 1
+  orig: 1, 1
+  offset: 0, 0
+  index: -1
+faceEx0002
+  rotate: false
+  xy: 82, 294
+  size: 1, 1
+  orig: 1, 1
+  offset: 0, 0
+  index: -1
+faceEx0003
   rotate: false
   xy: 82, 294
   size: 1, 1
@@ -410,6 +424,13 @@ hairTwinF
   orig: 1, 1
   offset: 0, 0
   index: -1
+handBEx0001
+  rotate: false
+  xy: 82, 294
+  size: 1, 1
+  orig: 1, 1
+  offset: 0, 0
+  index: -1
 handBEx0002
   rotate: false
   xy: 82, 294
@@ -418,13 +439,6 @@ handBEx0002
   offset: 0, 0
   index: -1
 handBEx0003
-  rotate: false
-  xy: 82, 294
-  size: 1, 1
-  orig: 1, 1
-  offset: 0, 0
-  index: -1
-handBEx0004
   rotate: false
   xy: 82, 294
   size: 1, 1
@@ -446,6 +460,20 @@ handB_F
   offset: 0, 0
   index: -1
 handB_F_open_room
+  rotate: false
+  xy: 82, 294
+  size: 1, 1
+  orig: 1, 1
+  offset: 0, 0
+  index: -1
+handFEx0001
+  rotate: false
+  xy: 82, 294
+  size: 1, 1
+  orig: 1, 1
+  offset: 0, 0
+  index: -1
+handFEx0005
   rotate: false
   xy: 82, 294
   size: 1, 1
@@ -705,15 +733,15 @@ acce02
   offset: 164, 277
   index: -1
 armB
-  rotate: true
-  xy: 293, 51
+  rotate: false
+  xy: 261, 4
   size: 25, 37
   orig: 455, 456
   offset: 212, 212
   index: -1
 armB_back
-  rotate: true
-  xy: 288, 22
+  rotate: false
+  xy: 290, 4
   size: 25, 37
   orig: 455, 456
   offset: 212, 212
@@ -754,43 +782,29 @@ faceAnger
   offset: 185, 251
   index: -1
 faceBlink
-  rotate: true
-  xy: 218, 9
+  rotate: false
+  xy: 288, 139
   size: 49, 41
   orig: 455, 456
   offset: 190, 254
   index: -1
 faceDead
-  rotate: true
-  xy: 242, 126
+  rotate: false
+  xy: 288, 92
   size: 49, 43
   orig: 455, 456
   offset: 190, 252
   index: -1
 faceEx0001
-  rotate: false
-  xy: 455, 272
+  rotate: true
+  xy: 163, 4
   size: 53, 41
   orig: 455, 456
   offset: 185, 254
   index: -1
-faceEx0002
-  rotate: true
-  xy: 118, 4
-  size: 53, 46
-  orig: 455, 456
-  offset: 185, 249
-  index: -1
-faceEx0003
-  rotate: true
-  xy: 168, 4
-  size: 53, 46
-  orig: 455, 456
-  offset: 185, 249
-  index: -1
 faceJoy
-  rotate: false
-  xy: 461, 360
+  rotate: true
+  xy: 117, 4
   size: 47, 42
   orig: 455, 456
   offset: 191, 249
@@ -811,7 +825,7 @@ faceNormal
   index: -1
 facePain
   rotate: false
-  xy: 364, 158
+  xy: 208, 43
   size: 43, 43
   orig: 455, 456
   offset: 194, 252
@@ -853,12 +867,12 @@ hairTwinF_back
   index: -1
 handB
   rotate: true
-  xy: 205, 62
+  xy: 233, 143
   size: 39, 51
   orig: 455, 456
   offset: 220, 184
   index: -1
-handBEx0001
+handBEx0004
   rotate: false
   xy: 358, 235
   size: 48, 59
@@ -873,29 +887,22 @@ handB_back
   offset: 220, 183
   index: -1
 handB_open_room
-  rotate: true
-  xy: 455, 229
+  rotate: false
+  xy: 190, 165
   size: 39, 52
   orig: 455, 456
   offset: 220, 183
   index: -1
 handF
   rotate: true
-  xy: 461, 317
+  xy: 461, 363
   size: 39, 47
   orig: 455, 456
   offset: 152, 179
   index: -1
-handFEx0001
-  rotate: false
-  xy: 289, 131
-  size: 46, 49
-  orig: 455, 456
-  offset: 148, 178
-  index: -1
 handFEx0002
   rotate: false
-  xy: 289, 131
+  xy: 205, 90
   size: 46, 49
   orig: 455, 456
   offset: 148, 178
@@ -914,23 +921,16 @@ handFEx0004
   orig: 455, 456
   offset: 149, 169
   index: -1
-handFEx0005
-  rotate: false
-  xy: 190, 161
-  size: 43, 56
-  orig: 455, 456
-  offset: 150, 167
-  index: -1
 handF_back
-  rotate: false
-  xy: 293, 80
+  rotate: true
+  xy: 461, 320
   size: 39, 47
   orig: 455, 456
   offset: 152, 179
   index: -1
 handF_open_room
   rotate: true
-  xy: 237, 179
+  xy: 255, 45
   size: 39, 48
   orig: 455, 456
   offset: 152, 178
@@ -986,14 +986,14 @@ legB_back
   index: -1
 legF
   rotate: false
-  xy: 339, 130
+  xy: 341, 130
   size: 21, 50
   orig: 455, 456
   offset: 180, 124
   index: -1
 legF_back
   rotate: false
-  xy: 263, 17
+  xy: 341, 76
   size: 21, 50
   orig: 455, 456
   offset: 179, 124
@@ -1028,7 +1028,7 @@ tail
   index: -1
 thighB
   rotate: false
-  xy: 260, 71
+  xy: 255, 88
   size: 29, 51
   orig: 455, 456
   offset: 211, 159
@@ -1041,15 +1041,15 @@ thighB_back
   offset: 212, 162
   index: -1
 thighF
-  rotate: false
-  xy: 205, 105
-  size: 33, 52
+  rotate: true
+  xy: 233, 186
+  size: 32, 52
   orig: 455, 456
-  offset: 179, 158
+  offset: 180, 158
   index: -1
 thighF_back
-  rotate: false
-  xy: 336, 77
+  rotate: true
+  xy: 208, 8
   size: 31, 49
   orig: 455, 456
   offset: 180, 157

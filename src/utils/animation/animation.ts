@@ -1,4 +1,4 @@
-import { GLTexture } from "@";
+import { canvasState } from "./../../redux/features/canvas/canvasState";
 import { getBinaryFile, getBlobFile } from "../axios/axiosGet";
 import { store } from "../../redux/store";
 import { additionAnimations } from "./../../constant/additionalAnimations";
@@ -11,7 +11,15 @@ import {
   Vector2,
   AnimationStateData,
   AnimationState,
+  ManagedWebGLRenderingContext,
+  Matrix4,
+  Shader,
+  PolygonBatcher,
+  SkeletonRenderer,
+  SkeletonDebugRenderer,
+  ShapeRenderer,
 } from "@esotericsoftware/spine-webgl";
+import { DynamicSkeleton } from "../../types/skeleton";
 
 export const getClass = (i: string) => {
   return (parseInt(i) < 10 ? "0" : "") + i;
@@ -36,11 +44,6 @@ interface charaAnimData {
   data: sliceCyspType;
 }
 
-interface bounds {
-  offset: Vector2;
-  size: Vector2;
-}
-
 export class animation {
   static generalBattleSkeletonData: Record<string, ArrayBuffer> = {};
   static generalAdditionAnimations: Record<string, additionType> = {};
@@ -52,15 +55,43 @@ export class animation {
     type: "0",
     data: { count: 0, data: new Uint8Array([0]) },
   };
-  static skeleton: {
-    skeleton: Skeleton | [];
-    state: bounds | [];
-    bounds: AnimationState | [];
-    premultipliedAlpha: boolean;
-  } = { skeleton: [], state: [], bounds: [], premultipliedAlpha: true };
+  static skeleton: DynamicSkeleton = {};
   static animationQueue: string[] = [];
   static currentTexture: GLTexture;
-  static gl;
+  static ctx: ManagedWebGLRenderingContext;
+  static lastFrameTime: number = Date.now() / 1000;
+  static speedFactor = 1;
+  static canvas: HTMLCanvasElement;
+  static mvp: Matrix4 = new Matrix4();
+  static shader: Shader;
+  static batcher: PolygonBatcher;
+  static skeletonRenderer: SkeletonRenderer;
+  static debugRenderer: SkeletonDebugRenderer;
+  static debugShader: Shader;
+  static shapes: ShapeRenderer;
+
+  static init() {
+    let canvas = animation.canvas;
+    canvas = document.getElementById("player") as HTMLCanvasElement;
+    const config = { alpha: false };
+    animation.ctx = new ManagedWebGLRenderingContext(canvas, config);
+    animation.shader = Shader.newTwoColoredTextured(animation.ctx);
+    animation.batcher = new PolygonBatcher(animation.ctx);
+    animation.mvp.ortho2d(0, 0, canvas.width - 1, canvas.height - 1);
+    animation.skeletonRenderer = new SkeletonRenderer(animation.ctx);
+
+    animation.debugRenderer = new SkeletonDebugRenderer(animation.ctx);
+    const debugRenderer = animation.debugRenderer;
+    debugRenderer.drawRegionAttachments = true;
+    debugRenderer.drawBoundingBoxes = true;
+    debugRenderer.drawMeshHull = true;
+    debugRenderer.drawMeshTriangles = true;
+    debugRenderer.drawPaths = true;
+
+    animation.debugShader = Shader.newColored(animation.ctx);
+    animation.shapes = new ShapeRenderer(animation.ctx);
+    animation.loadCharaBaseData();
+  }
 
   protected static sliceCyspAnimation(buffer: ArrayBuffer): sliceCyspType {
     const view = new DataView(buffer);
@@ -69,6 +100,10 @@ export class animation {
       count: count,
       data: buffer.slice((count + 1) * 32),
     };
+  }
+
+  protected static setSpeedFactor(value: string) {
+    animation.speedFactor = parseFloat(value);
   }
 
   protected static setGeneralBattleSkeletonData(data: {
@@ -158,6 +193,7 @@ export class animation {
       data: response.data,
     };
     animation.setGeneralBattleSkeletonData(data);
+    animation.loadAdditionAnimation();
   }
 
   static loadAdditionAnimation() {
@@ -202,7 +238,7 @@ export class animation {
         data: animation.sliceCyspAnimation(response.data),
       };
       animation.setCurrentClasAnimData(data);
-      animation.loadCharaBaseData();
+      animation.loadCharaSkillAnimation();
     }
   }
 
@@ -249,11 +285,11 @@ export class animation {
     img.onload = () => {
       const created = !!animation.skeleton.skeleton;
       if (created) {
-        animation.skeleton.skeleton.state.clearTracks();
-        animation.skeleton.skeleton.state.clearListeners();
-        animation.gl.deleteTexture(animation.currentTexture.texture);
+        animation.skeleton.state.clearTracks();
+        animation.skeleton.state.clearListeners();
+        animation.ctx.gl.deleteTexture(animation.currentTexture.context);
       }
-      const imgTexture = new GLTexture(animation.gl, img);
+      const imgTexture = new GLTexture(animation.ctx.gl, img);
       URL.revokeObjectURL(img.src);
       const atlas = new TextureAtlas(atlasText);
       animation.currentTexture = imgTexture;
@@ -357,5 +393,80 @@ export class animation {
     const size = new Vector2();
     skeleton.getBounds(offset, size, []);
     return { offset: offset, size: size };
+  }
+
+  static render() {
+    const now = Date.now() / 1000;
+    const canvasState = store.getState().canvasState;
+    let delta = now - animation.lastFrameTime;
+    animation.lastFrameTime = now;
+    delta *= animation.speedFactor;
+
+    // Update the MVP matrix to adjust for canvas size changes
+    animation.resize();
+
+    const gl = animation.ctx.gl;
+    gl.clearColor(
+      parseInt(canvasState.canvasBG[0]),
+      parseInt(canvasState.canvasBG[1]),
+      parseInt(canvasState.canvasBG[2]),
+      1
+    );
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    // Apply the animation state based on the delta time.
+    const state = animation.skeleton.state;
+    const skeleton = animation.skeleton.skeleton;
+    const bounds = animation.skeleton.bounds;
+    const premultipliedAlpha = animation.skeleton.premultipliedAlpha;
+    state.update(delta);
+    state.apply(skeleton);
+    skeleton.updateWorldTransform();
+
+    // Bind the shader and set the texture and model-view-projection matrix.
+    animation.shader.bind();
+    animation.shader.setUniformi(Shader.SAMPLER, 0);
+    animation.shader.setUniform4x4f(Shader.MVP_MATRIX, animation.mvp.values);
+
+    // Start the batch and tell the SkeletonRenderer to render the active skeleton.
+    animation.batcher.begin(animation.shader);
+
+    const skeletonRenderer = animation.skeletonRenderer;
+    skeletonRenderer.premultipliedAlpha = premultipliedAlpha;
+    skeletonRenderer.draw(animation.batcher, skeleton);
+
+    animation.shader.unbind();
+    requestAnimationFrame(animation.render);
+    // draw debug information
+  }
+
+  static resize() {
+    // const useBig = screen.width * devicePixelRatio > 1280;
+    const canvas = animation.canvas;
+    const bounds = animation.skeleton.bounds;
+    const w = canvas.clientWidth * devicePixelRatio;
+    const h = canvas.clientHeight * devicePixelRatio;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+
+    //magic resize
+    const centerX = bounds.offset.x + bounds.size.x / 2;
+    const centerY = bounds.offset.y + bounds.size.y / 2;
+    const scaleX = bounds.size.x / canvas.width;
+    const scaleY = bounds.size.y / canvas.height;
+    let scale = Math.max(scaleX, scaleY) * 1.2;
+    if (scale < 1) scale = 1;
+    const width = canvas.width * scale;
+    const height = canvas.height * scale;
+
+    animation.mvp.ortho2d(
+      centerX - width / 2,
+      centerY - height / 2,
+      width,
+      height
+    );
+    animation.ctx.gl.viewport(0, 0, canvas.width, canvas.height);
   }
 }
