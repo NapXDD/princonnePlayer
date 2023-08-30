@@ -10,13 +10,10 @@ export default function Tool() {
   const loadingSkeleton = useSelector(
     (state: RootState) => state.loadingSkeleton
   );
-  const unitState = useSelector((state: RootState) => state.unitState);
 
   useEffect(() => {
-    animation.init();
-  }, []);
-
-  useEffect(() => {}, [loadingSkeleton, unitState]);
+    animation.init(loadingSkeleton);
+  }, [loadingSkeleton]);
 
   return (
     <Box className="flex-col flex-wrap justify-center items-center">

@@ -8,11 +8,11 @@ export interface loadingSkeleton {
 }
 
 const initialState: loadingSkeleton = {
-  id: 0,
+  id: 100111,
   info: {
-    name: "",
-    type: "",
-    hasRarity6: false,
+    name: "ヒヨリ",
+    type: "1",
+    hasRarity6: true,
   },
   baseId: "000000",
 };

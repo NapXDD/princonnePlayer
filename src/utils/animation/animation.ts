@@ -1,3 +1,4 @@
+import { loadingSkeleton } from "./../../redux/features/spine/loadingSkeleton";
 import { canvasState } from "./../../redux/features/canvas/canvasState";
 import { getBinaryFile, getBlobFile } from "../axios/axiosGet";
 import { store } from "../../redux/store";
@@ -18,6 +19,9 @@ import {
   SkeletonRenderer,
   SkeletonDebugRenderer,
   ShapeRenderer,
+  AssetManager,
+  AssetManagerBase,
+  Texture,
 } from "@esotericsoftware/spine-webgl";
 import { DynamicSkeleton } from "../../types/skeleton";
 
@@ -69,16 +73,27 @@ export class animation {
   static debugRenderer: SkeletonDebugRenderer;
   static debugShader: Shader;
   static shapes: ShapeRenderer;
+  static assetManager: AssetManager;
 
-  static init() {
-    let canvas = animation.canvas;
-    canvas = document.getElementById("player") as HTMLCanvasElement;
+  static init(loadingSkeleton: loadingSkeleton) {
+    animation.canvas = document.getElementById("player") as HTMLCanvasElement;
+    animation.canvas.width = window.innerWidth;
+    animation.canvas.height = window.innerHeight;
     const config = { alpha: false };
-    animation.ctx = new ManagedWebGLRenderingContext(canvas, config);
+    animation.ctx = new ManagedWebGLRenderingContext(animation.canvas, config);
     animation.shader = Shader.newTwoColoredTextured(animation.ctx);
     animation.batcher = new PolygonBatcher(animation.ctx);
-    animation.mvp.ortho2d(0, 0, canvas.width - 1, canvas.height - 1);
+    animation.mvp.ortho2d(
+      0,
+      0,
+      animation.canvas.width - 1,
+      animation.canvas.height - 1
+    );
     animation.skeletonRenderer = new SkeletonRenderer(animation.ctx);
+    animation.assetManager = new AssetManager(
+      animation.ctx,
+      "Data/assets/unit/"
+    );
 
     animation.debugRenderer = new SkeletonDebugRenderer(animation.ctx);
     const debugRenderer = animation.debugRenderer;
@@ -90,7 +105,19 @@ export class animation {
 
     animation.debugShader = Shader.newColored(animation.ctx);
     animation.shapes = new ShapeRenderer(animation.ctx);
-    animation.loadCharaBaseData();
+
+    animation.assetManager.loadTextureAtlas(`${loadingSkeleton.id}.atlas`);
+
+    requestAnimationFrame(load);
+
+    function load() {
+      if (animation.assetManager.isLoadingComplete()) {
+        animation.loadDefaultAdditionAnimation();
+        animation.loadCharaBaseData(loadingSkeleton);
+        animation.lastFrameTime = Date.now() / 1000;
+        // requestAnimationFrame(animation.render);
+      } else requestAnimationFrame(load);
+    }
   }
 
   protected static sliceCyspAnimation(buffer: ArrayBuffer): sliceCyspType {
@@ -178,47 +205,57 @@ export class animation {
     });
   }
 
-  static async loadCharaBaseData() {
-    const loadingSkeleton = store.getState().loadingSkeleton;
+  static async loadCharaBaseData(loadingSkeleton: loadingSkeleton) {
     const baseId = loadingSkeleton.baseId;
-    const response = await getBinaryFile(
-      `assets/common/${baseId}_CHARA_BASE.cysp`
-    );
-    if (response.status !== 200) {
-      console.error(`${baseId}_CHARA_BASE.cysp not exist`);
-      return;
+    if (animation.generalBattleSkeletonData[baseId] === undefined) {
+      try {
+        const response = await getBinaryFile(
+          `assets/common/${baseId}_CHARA_BASE.cysp`
+        );
+        if (response.status === 200) {
+          const data = {
+            id: baseId,
+            data: response.data,
+          };
+          animation.setGeneralBattleSkeletonData(data);
+          animation.loadAdditionAnimation(loadingSkeleton);
+        }
+      } catch {
+        animation.loadAdditionAnimation(loadingSkeleton);
+      }
+    } else {
+      animation.loadAdditionAnimation(loadingSkeleton);
     }
-    const data = {
-      id: baseId,
-      data: response.data,
-    };
-    animation.setGeneralBattleSkeletonData(data);
-    animation.loadAdditionAnimation();
   }
 
-  static loadAdditionAnimation() {
+  static loadAdditionAnimation(loadingSkeleton: loadingSkeleton) {
     let doneCount = 0;
-    const loadingSkeleton = store.getState().loadingSkeleton;
     const baseId = loadingSkeleton.baseId;
+    animation.generalAdditionAnimations[baseId] =
+      animation.generalAdditionAnimations[baseId] || {};
     additionAnimations.map(async (additionAnimation) => {
-      if (animation.generalAdditionAnimations[baseId][additionAnimation.type])
+      console.log(doneCount);
+      if (animation.generalAdditionAnimations[baseId][additionAnimation.type]) {
         return doneCount++;
+      }
+
       const response = await getBinaryFile(
         `assets/common/${baseId}_${additionAnimation.type}.cysp`
       );
-      if (response.status !== 200) {
-        console.error(`${baseId}_${additionAnimation.type}.cysp not exist`);
-        return;
-      }
       const data = {
         id: baseId,
         data: animation.sliceCyspAnimation(response.data),
         type: additionAnimation.type,
       };
       animation.setGeneralAdditionAnimationData(data);
+      animation.loadClassAnimation();
+      // animation.loadClassAnimation();
+
+      if (++doneCount === additionAnimations.length)
+        animation.loadClassAnimation();
     });
-    if (doneCount === additionAnimations.length)
-      return animation.loadClassAnimation();
+    console.log("lmao", animation.generalAdditionAnimations);
+    if (doneCount === additionAnimations.length) animation.loadClassAnimation();
   }
 
   static async loadClassAnimation() {
@@ -226,41 +263,46 @@ export class animation {
     if (currentClass === animation.currentClassAnimData.type) {
       animation.loadCharaSkillAnimation();
     } else {
-      const response = await getBinaryFile(
-        `assets/common/${getClass(currentClass)}_COMMON_BATTLE.cysp`
-      );
-      if (response.status !== 200) {
-        console.error(`${getClass(currentClass)}_COMMON_BATTLE.cysp not exist`);
-        return;
+      try {
+        const response = await getBinaryFile(
+          `assets/common/${getClass(currentClass)}_COMMON_BATTLE.cysp`
+        );
+        if (response.status === 200) {
+          const data = {
+            type: currentClass,
+            data: animation.sliceCyspAnimation(response.data),
+          };
+          animation.setCurrentClasAnimData(data);
+          animation.loadCharaSkillAnimation();
+          console.log("classSkillAnimation:", animation.currentClassAnimData);
+        }
+      } catch {
+        animation.loadCharaSkillAnimation();
       }
-      const data = {
-        type: currentClass,
-        data: animation.sliceCyspAnimation(response.data),
-      };
-      animation.setCurrentClasAnimData(data);
-      animation.loadCharaSkillAnimation();
     }
   }
 
   static async loadCharaSkillAnimation() {
     const loadingSkeleton = store.getState().loadingSkeleton;
-    const baseUnitId = loadingSkeleton.baseId;
-    if (animation.currentCharaAnimData.id === baseUnitId)
+    let baseUnitId = loadingSkeleton.id;
+    baseUnitId -= (baseUnitId % 100) - 1;
+    if (parseInt(animation.currentCharaAnimData.id) === baseUnitId) {
       animation.loadTexture();
-    else {
-      const response = await getBinaryFile(
-        `assets/unit/${baseUnitId}_BATTLE.cysp`
-      );
-      if (response.status !== 200) {
-        console.error(`${baseUnitId}_BATTLE.cysp not exist`);
-        return;
+    } else {
+      try {
+        const response = await getBinaryFile(
+          `assets/unit/${baseUnitId}_BATTLE.cysp`
+        );
+        const data = {
+          id: baseUnitId.toString(),
+          data: animation.sliceCyspAnimation(response.data),
+        };
+        animation.setCurrentCharaAnimData(data);
+        animation.loadTexture();
+        console.log("charaSkillAnimation:", data.data);
+      } catch {
+        animation.loadTexture();
       }
-      const data = {
-        id: baseUnitId,
-        data: animation.sliceCyspAnimation(response.data),
-      };
-      animation.setCurrentCharaAnimData(data);
-      animation.loadTexture();
     }
   }
 
@@ -280,7 +322,7 @@ export class animation {
       console.error(`${loadingSkeleton.id}.png not exist`);
       return;
     }
-    const atlasText = await new Response(response.data).text();
+    // const atlasText = await new Response(response.data).text();
     const img = new Image();
     img.onload = () => {
       const created = !!animation.skeleton.skeleton;
@@ -291,8 +333,12 @@ export class animation {
       }
       const imgTexture = new GLTexture(animation.ctx.gl, img);
       URL.revokeObjectURL(img.src);
-      const atlas = new TextureAtlas(atlasText);
+      // const atlas = new TextureAtlas(atlasText);
+      const atlas = animation.assetManager.require(
+        `${loadingSkeleton.id}.atlas`
+      );
       animation.currentTexture = imgTexture;
+
       const atlasLoader = new AtlasAttachmentLoader(atlas);
       const baseId = loadingSkeleton.baseId;
       const additionAnimations = Object.values(
@@ -326,7 +372,7 @@ export class animation {
         0
       );
 
-      offset += this.generalBattleSkeletonData[baseId].byteLength - 64;
+      offset += animation.generalBattleSkeletonData[baseId].byteLength - 64;
       newBuff[offset] = animationCount;
       offset++;
 
@@ -334,8 +380,8 @@ export class animation {
         new Uint8Array(animation.currentClassAnimData.data.data),
         offset
       );
-
       offset += animation.currentClassAnimData.data.data.byteLength;
+
       newBuff.set(
         new Uint8Array(animation.currentCharaAnimData.data.data),
         offset
@@ -348,8 +394,9 @@ export class animation {
       });
 
       const skeletonBinary = new SkeletonBinary(atlasLoader);
+      skeletonBinary.scale = 1;
+      console.log(newBuff);
       const skeletonData = skeletonBinary.readSkeletonData(newBuff);
-      const currentSkelData = newBuff.buffer;
       const skeleton = new Skeleton(skeletonData);
       skeleton.setSkinByName("default");
       const bounds = animation.calculateBounds(skeleton);
@@ -357,7 +404,6 @@ export class animation {
       const animationStateData = new AnimationStateData(skeleton.data);
 
       const animationState = new AnimationState(animationStateData);
-      //console.log(getClass())
       animationState.addListener({
         complete: function tick() {
           if (animation.animationQueue.length) {
@@ -384,6 +430,7 @@ export class animation {
         premultipliedAlpha: true,
       };
     };
+    img.src = URL.createObjectURL(pngResponse.data);
   }
 
   static calculateBounds(skeleton: Skeleton) {
