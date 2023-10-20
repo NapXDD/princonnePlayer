@@ -4,7 +4,8 @@ import CharaSelector from "./chara_selector";
 import { useEffect } from "react";
 import { RootState } from "../../redux/store";
 import { useSelector } from "react-redux";
-import { animation } from "../../utils/animation/animation";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { animation } from "../../utils/animation/animation_test.js";
 
 export default function Tool() {
   const loadingSkeleton = useSelector(

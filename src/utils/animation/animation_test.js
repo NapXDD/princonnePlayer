@@ -1,103 +1,68 @@
-import { loadingSkeleton } from "./../../redux/features/spine/loadingSkeleton";
-import { canvasState } from "./../../redux/features/canvas/canvasState";
-import { getBinaryFile, getBlobFile } from "../axios/axiosGet";
+import { additionAnimations } from "../../constant/additionalAnimations";
 import { store } from "../../redux/store";
-import { additionAnimations } from "./../../constant/additionalAnimations";
-import {
-  GLTexture,
-  TextureAtlas,
-  AtlasAttachmentLoader,
-  Skeleton,
-  SkeletonBinary,
-  Vector2,
-  AnimationStateData,
-  AnimationState,
-  ManagedWebGLRenderingContext,
-  Matrix4,
-  Shader,
-  PolygonBatcher,
-  SkeletonRenderer,
-  SkeletonDebugRenderer,
-  ShapeRenderer,
-  AssetManager,
-  AssetManagerBase,
-  Texture,
-  BinaryInput,
-} from "@esotericsoftware/spine-webgl";
-import { DynamicSkeleton } from "../../types/skeleton";
+import { getBinaryFile, getBlobFile } from "../axios/axiosGet";
 
-export const getClass = (i: string) => {
+const getClass = (i) => {
   return (parseInt(i) < 10 ? "0" : "") + i;
 };
 
-interface sliceCyspType {
-  count: number;
-  data: ArrayBuffer;
-}
-
-interface additionType {
-  [code: string]: sliceCyspType;
-}
-
-interface classAnimData {
-  type: string;
-  data: sliceCyspType;
-}
-
-interface charaAnimData {
-  id: string;
-  data: sliceCyspType;
-}
-
 export class animation {
-  static generalBattleSkeletonData: Record<string, ArrayBuffer> = {};
-  static generalAdditionAnimations: Record<string, additionType> = {};
-  static currentCharaAnimData: charaAnimData = {
+  static generalBattleSkeletonData = {};
+  static generalAdditionAnimations = {};
+  static currentCharaAnimData = {
     id: "0",
     data: { count: 0, data: new Uint8Array([0]) },
   };
-  static currentClassAnimData: classAnimData = {
+  static currentClassAnimData = {
     type: "0",
     data: { count: 0, data: new Uint8Array([0]) },
   };
-  static skeleton: DynamicSkeleton = {};
-  static animationQueue: string[] = [];
-  static currentTexture: GLTexture;
-  static ctx: ManagedWebGLRenderingContext;
-  static lastFrameTime: number = Date.now() / 1000;
+  static skeleton = {};
+  static animationQueue = [];
+  static currentTexture;
+  static ctx;
+  static lastFrameTime = Date.now() / 1000;
   static speedFactor = 1;
-  static canvas: HTMLCanvasElement;
-  static mvp: Matrix4 = new Matrix4();
-  static shader: Shader;
-  static batcher: PolygonBatcher;
-  static skeletonRenderer: SkeletonRenderer;
-  static debugRenderer: SkeletonDebugRenderer;
-  static debugShader: Shader;
-  static shapes: ShapeRenderer;
-  static assetManager: AssetManager;
-  static SkeletonBinaryData: Uint8Array;
+  static canvas;
+  // eslint-disable-next-line no-undef
+  static mvp = new spine.webgl.Matrix4();
+  static shader;
+  static batcher;
+  static skeletonRenderer;
+  static debugRenderer;
+  static debugShader;
+  static shapes;
+  static assetManager;
+  static SkeletonBinaryData;
+  static loading;
 
-  static init(loadingSkeleton: loadingSkeleton) {
-    animation.canvas = document.getElementById("player") as HTMLCanvasElement;
+  static init(loadingSkeleton) {
+    animation.canvas = document.getElementById("player");
     animation.canvas.width = window.innerWidth;
     animation.canvas.height = window.innerHeight;
     const config = { alpha: false };
-    animation.ctx = new ManagedWebGLRenderingContext(animation.canvas, config);
-    animation.shader = Shader.newTwoColoredTextured(animation.ctx);
-    animation.batcher = new PolygonBatcher(animation.ctx);
+    animation.ctx =
+      animation.canvas.getContext("webgl", config) ||
+      animation.canvas.getContext("experimental-webgl", config);
+    // eslint-disable-next-line no-undef
+    animation.shader = spine.webgl.Shader.newTwoColoredTextured(animation.ctx);
+    // eslint-disable-next-line no-undef
+    animation.batcher = new spine.webgl.PolygonBatcher(animation.ctx);
     animation.mvp.ortho2d(
       0,
       0,
       animation.canvas.width - 1,
       animation.canvas.height - 1
     );
-    animation.skeletonRenderer = new SkeletonRenderer(animation.ctx);
-    animation.assetManager = new AssetManager(
-      animation.ctx,
-      "Data/assets/unit/"
+    // eslint-disable-next-line no-undef
+    animation.skeletonRenderer = new spine.webgl.SkeletonRenderer(
+      animation.ctx
     );
 
-    animation.debugRenderer = new SkeletonDebugRenderer(animation.ctx);
+    // eslint-disable-next-line no-undef
+    animation.debugRenderer = new spine.webgl.SkeletonDebugRenderer(
+      animation.ctx
+    );
     const debugRenderer = animation.debugRenderer;
     debugRenderer.drawRegionAttachments = true;
     debugRenderer.drawBoundingBoxes = true;
@@ -105,25 +70,20 @@ export class animation {
     debugRenderer.drawMeshTriangles = true;
     debugRenderer.drawPaths = true;
 
-    animation.debugShader = Shader.newColored(animation.ctx);
-    animation.shapes = new ShapeRenderer(animation.ctx);
-
-    animation.assetManager.loadTextureAtlas(`${loadingSkeleton.id}.atlas`);
-
+    // eslint-disable-next-line no-undef
+    animation.debugShader = spine.webgl.Shader.newColored(animation.ctx);
+    // eslint-disable-next-line no-undef
+    animation.shapes = new spine.webgl.ShapeRenderer(animation.ctx);
     requestAnimationFrame(load);
-
     function load() {
-      if (animation.assetManager.isLoadingComplete()) {
-        animation.loadDefaultAdditionAnimation();
-        animation.loadCharaBaseData(loadingSkeleton);
-        animation.lastFrameTime = Date.now() / 1000;
-        animation.printAnimationStatus();
-        // requestAnimationFrame(animation.render);
-      } else requestAnimationFrame(load);
+      animation.loadDefaultAdditionAnimation();
+      animation.loadCharaBaseData(loadingSkeleton);
+      animation.lastFrameTime = Date.now() / 1000;
+      animation.printAnimationStatus();
     }
   }
 
-  protected static sliceCyspAnimation(buffer: ArrayBuffer): sliceCyspType {
+  static sliceCyspAnimation(buffer) {
     const view = new DataView(buffer);
     const count = view.getInt32(12, true);
     return {
@@ -132,45 +92,29 @@ export class animation {
     };
   }
 
-  protected static setSpeedFactor(value: string) {
+  static setSpeedFactor(value) {
     animation.speedFactor = parseFloat(value);
   }
 
-  protected static setGeneralBattleSkeletonData(data: {
-    id: string;
-    data: ArrayBuffer;
-  }) {
+  static setGeneralBattleSkeletonData(data) {
     animation.generalBattleSkeletonData[data.id] = data.data;
   }
 
-  protected static setGeneralAdditionAnimationData(data: {
-    id: string;
-    type: string;
-    data: {
-      count: number;
-      data: ArrayBuffer;
-    };
-  }) {
+  static setGeneralAdditionAnimationData(data) {
     animation.generalAdditionAnimations[data.id] = {
       ...animation.generalAdditionAnimations[data.id],
       [data.type]: data.data,
     };
   }
 
-  protected static setCurrentClasAnimData(data: {
-    type: string;
-    data: sliceCyspType;
-  }) {
+  static setCurrentClasAnimData(data) {
     animation.currentClassAnimData = {
       type: data.type,
       data: data.data,
     };
   }
 
-  protected static setCurrentCharaAnimData(data: {
-    id: string;
-    data: sliceCyspType;
-  }) {
+  static setCurrentCharaAnimData(data) {
     animation.currentCharaAnimData = {
       id: data.id,
       data: data.data,
@@ -216,7 +160,7 @@ export class animation {
     });
   }
 
-  static async loadCharaBaseData(loadingSkeleton: loadingSkeleton) {
+  static async loadCharaBaseData(loadingSkeleton) {
     const baseId = loadingSkeleton.baseId;
     if (animation.generalBattleSkeletonData[baseId] === undefined) {
       try {
@@ -241,7 +185,7 @@ export class animation {
     }
   }
 
-  static loadAdditionAnimation(loadingSkeleton: loadingSkeleton) {
+  static loadAdditionAnimation(loadingSkeleton) {
     let doneCount = 0;
     const baseId = loadingSkeleton.baseId;
     animation.generalAdditionAnimations[baseId] =
@@ -345,24 +289,28 @@ export class animation {
       console.error(`${loadingSkeleton.id}.png not exist`);
       return;
     }
-    // const atlasText = await new Response(response.data).text();
+    const atlasText = await new Response(response.data).text();
     const img = new Image();
     img.onload = () => {
       const created = !!animation.skeleton.skeleton;
       if (created) {
         animation.skeleton.state.clearTracks();
         animation.skeleton.state.clearListeners();
-        animation.ctx.gl.deleteTexture(animation.currentTexture.context);
+        animation.ctx.deleteTexture(animation.currentTexture.texture);
       }
-      const imgTexture = new GLTexture(animation.ctx.gl, img);
+      // eslint-disable-next-line no-undef
+      const imgTexture = new spine.webgl.GLTexture(animation.ctx, img);
       URL.revokeObjectURL(img.src);
-      // const atlas = new TextureAtlas(atlasText);
-      const atlas = animation.assetManager.require(
-        `${loadingSkeleton.id}.atlas`
-      );
+
+      // eslint-disable-next-line no-undef
+      const atlas = new spine.TextureAtlas(atlasText, function (path) {
+        return imgTexture;
+      });
+
       animation.currentTexture = imgTexture;
 
-      const atlasLoader = new AtlasAttachmentLoader(atlas);
+      // eslint-disable-next-line no-undef
+      const atlasLoader = new spine.AtlasAttachmentLoader(atlas);
       const baseId = loadingSkeleton.baseId;
       const additionAnimations = Object.values(
         animation.generalAdditionAnimations[baseId]
@@ -417,21 +365,27 @@ export class animation {
       });
 
       // const skeletonBinary = new SkeletonBinary(atlasLoader);
-      const skeletonBinary = new SkeletonBinary(atlasLoader);
+      // eslint-disable-next-line no-undef
+      const skeletonBinary = new spine.SkeletonBinary(atlasLoader);
       skeletonBinary.scale = 1;
-      const skeletonData = skeletonBinary.readSkeletonData(newBuff);
-      console.log("skeletonData", skeletonData);
-      const skeleton = new Skeleton(skeletonData);
+      const skeletonData = skeletonBinary.readSkeletonData(newBuff.buffer);
+
+      animation.currentSkelData = newBuff.buffer;
+      // setUpDownloadBlob(newBuff.buffer, "some0file.skel");
+      // eslint-disable-next-line no-undef
+      const skeleton = new spine.Skeleton(skeletonData);
       skeleton.setSkinByName("default");
       const bounds = animation.calculateBounds(skeleton);
 
-      const animationStateData = new AnimationStateData(skeleton.data);
+      // eslint-disable-next-line no-undef
+      const animationStateData = new spine.AnimationStateData(skeleton.data);
 
-      const animationState = new AnimationState(animationStateData);
+      // eslint-disable-next-line no-undef
+      const animationState = new spine.AnimationState(animationStateData);
       animationState.addListener({
         complete: function tick() {
           if (animation.animationQueue.length) {
-            let nextAnim = animation.animationQueue.shift() as string;
+            let nextAnim = animation.animationQueue.shift();
             if (nextAnim === "stop") return;
             if (nextAnim === "hold") return setTimeout(tick, 1e3);
             if (nextAnim.substring(0, 1) != "1") {
@@ -447,21 +401,31 @@ export class animation {
           }
         },
       });
+      animation.loading = false;
       animation.skeleton = {
         skeleton: skeleton,
         state: animationState,
         bounds: bounds,
         premultipliedAlpha: true,
       };
+      if (!created) {
+        animation.canvas.style.width = "99%";
+        requestAnimationFrame(animation.render);
+        setTimeout(function () {
+          animation.canvas.style.width = "";
+        }, 0);
+      }
     };
     img.src = URL.createObjectURL(pngResponse.data);
   }
 
-  static calculateBounds(skeleton: Skeleton) {
+  static calculateBounds(skeleton) {
     skeleton.setToSetupPose();
     skeleton.updateWorldTransform();
-    const offset = new Vector2();
-    const size = new Vector2();
+    // eslint-disable-next-line no-undef
+    const offset = new spine.Vector2();
+    // eslint-disable-next-line no-undef
+    const size = new spine.Vector2();
     skeleton.getBounds(offset, size, []);
     return { offset: offset, size: size };
   }
@@ -476,7 +440,7 @@ export class animation {
     // Update the MVP matrix to adjust for canvas size changes
     animation.resize();
 
-    const gl = animation.ctx.gl;
+    const gl = animation.ctx;
     gl.clearColor(
       parseInt(canvasState.canvasBG[0]),
       parseInt(canvasState.canvasBG[1]),
@@ -496,8 +460,14 @@ export class animation {
 
     // Bind the shader and set the texture and model-view-projection matrix.
     animation.shader.bind();
-    animation.shader.setUniformi(Shader.SAMPLER, 0);
-    animation.shader.setUniform4x4f(Shader.MVP_MATRIX, animation.mvp.values);
+    // eslint-disable-next-line no-undef
+    animation.shader.setUniformi(spine.webgl.Shader.SAMPLER, 0);
+    // eslint-disable-next-line no-undef
+    animation.shader.setUniform4x4f(
+      // eslint-disable-next-line no-undef
+      spine.webgl.Shader.MVP_MATRIX,
+      animation.mvp.values
+    );
 
     // Start the batch and tell the SkeletonRenderer to render the active skeleton.
     animation.batcher.begin(animation.shader);
@@ -505,6 +475,7 @@ export class animation {
     const skeletonRenderer = animation.skeletonRenderer;
     skeletonRenderer.premultipliedAlpha = premultipliedAlpha;
     skeletonRenderer.draw(animation.batcher, skeleton);
+    animation.batcher.end();
 
     animation.shader.unbind();
     requestAnimationFrame(animation.render);
@@ -538,7 +509,7 @@ export class animation {
       width,
       height
     );
-    animation.ctx.gl.viewport(0, 0, canvas.width, canvas.height);
+    animation.ctx.viewport(0, 0, canvas.width, canvas.height);
   }
 
   static printAnimationStatus() {
