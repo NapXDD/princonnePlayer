@@ -4,7 +4,8 @@ import CharaSelector from "./chara_selector";
 import { useEffect } from "react";
 import { RootState } from "../../redux/store";
 import { useSelector } from "react-redux";
-// eslint-disable-next-line no-undef
+/* eslint-disable */
+// @ts-ignore
 import { animation } from "../../utils/animation/animation_test.js";
 
 export default function Tool() {
