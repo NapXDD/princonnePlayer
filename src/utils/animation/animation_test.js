@@ -74,12 +74,11 @@ export class animation {
     animation.debugShader = spine.webgl.Shader.newColored(animation.ctx);
     // eslint-disable-next-line no-undef
     animation.shapes = new spine.webgl.ShapeRenderer(animation.ctx);
-    requestAnimationFrame(load);
+    load();
     function load() {
       animation.loadDefaultAdditionAnimation();
       animation.loadCharaBaseData(loadingSkeleton);
       animation.lastFrameTime = Date.now() / 1000;
-      animation.printAnimationStatus();
     }
   }
 
@@ -174,8 +173,8 @@ export class animation {
           };
           if (animation.generalBattleSkeletonData[baseId] === undefined) {
             animation.setGeneralBattleSkeletonData(data);
+            animation.loadAdditionAnimation(loadingSkeleton);
           }
-          animation.loadAdditionAnimation(loadingSkeleton);
         }
       } catch {
         animation.loadAdditionAnimation(loadingSkeleton);
@@ -206,9 +205,9 @@ export class animation {
         animation.generalAdditionAnimations[baseId][data.type] === undefined
       ) {
         animation.setGeneralAdditionAnimationData(data);
+        animation.loadClassAnimation();
       }
 
-      animation.loadClassAnimation();
       // animation.loadClassAnimation();
 
       if (++doneCount === additionAnimations.length)
@@ -236,8 +235,8 @@ export class animation {
             animation.currentClassAnimData.data !== data.data
           ) {
             animation.setCurrentClasAnimData(data);
+            animation.loadCharaSkillAnimation();
           }
-          animation.loadCharaSkillAnimation();
         }
       } catch {
         animation.loadCharaSkillAnimation();
@@ -265,8 +264,8 @@ export class animation {
           animation.currentCharaAnimData.data !== data.data
         ) {
           animation.setCurrentCharaAnimData(data);
+          animation.loadTexture();
         }
-        animation.loadTexture();
       } catch {
         animation.loadTexture();
       }
@@ -303,7 +302,7 @@ export class animation {
       URL.revokeObjectURL(img.src);
 
       // eslint-disable-next-line no-undef
-      const atlas = new spine.TextureAtlas(atlasText, function (path) {
+      const atlas = new spine.TextureAtlas(atlasText, function () {
         return imgTexture;
       });
 
@@ -382,6 +381,11 @@ export class animation {
 
       // eslint-disable-next-line no-undef
       const animationState = new spine.AnimationState(animationStateData);
+      animationState.setAnimation(
+        0,
+        getClass(animation.currentClassAnimData.type) + "_idle",
+        true
+      );
       animationState.addListener({
         complete: function tick() {
           if (animation.animationQueue.length) {
@@ -452,34 +456,46 @@ export class animation {
     // Apply the animation state based on the delta time.
     const state = animation.skeleton.state;
     const skeleton = animation.skeleton.skeleton;
-    const bounds = animation.skeleton.bounds;
     const premultipliedAlpha = animation.skeleton.premultipliedAlpha;
-    state.update(delta);
-    state.apply(skeleton);
-    skeleton.updateWorldTransform();
 
-    // Bind the shader and set the texture and model-view-projection matrix.
-    animation.shader.bind();
-    // eslint-disable-next-line no-undef
-    animation.shader.setUniformi(spine.webgl.Shader.SAMPLER, 0);
-    // eslint-disable-next-line no-undef
-    animation.shader.setUniform4x4f(
+    if (state != undefined) {
+      state.update(delta);
+      state.apply(skeleton);
+      skeleton.updateWorldTransform();
+
+      // Bind the shader and set the texture and model-view-projection matrix.
+      animation.shader.bind();
       // eslint-disable-next-line no-undef
-      spine.webgl.Shader.MVP_MATRIX,
-      animation.mvp.values
-    );
+      animation.shader.setUniformi(spine.webgl.Shader.SAMPLER, 0);
+      // eslint-disable-next-line no-undef
+      animation.shader.setUniform4x4f(
+        // eslint-disable-next-line no-undef
+        spine.webgl.Shader.MVP_MATRIX,
+        animation.mvp.values
+      );
 
-    // Start the batch and tell the SkeletonRenderer to render the active skeleton.
-    animation.batcher.begin(animation.shader);
+      // Bind the shader and set the texture and model-view-projection matrix.
+      animation.shader.bind();
+      // eslint-disable-next-line no-undef
+      animation.shader.setUniformi(spine.webgl.Shader.SAMPLER, 0);
+      animation.shader.setUniform4x4f(
+        // eslint-disable-next-line no-undef
+        spine.webgl.Shader.MVP_MATRIX,
+        animation.mvp.values
+      );
 
-    const skeletonRenderer = animation.skeletonRenderer;
-    skeletonRenderer.premultipliedAlpha = premultipliedAlpha;
-    skeletonRenderer.draw(animation.batcher, skeleton);
-    animation.batcher.end();
+      // Start the batch and tell the SkeletonRenderer to render the active skeleton.
+      animation.batcher.begin(animation.shader);
 
-    animation.shader.unbind();
-    requestAnimationFrame(animation.render);
-    // draw debug information
+      const skeletonRenderer = animation.skeletonRenderer;
+      skeletonRenderer.premultipliedAlpha = premultipliedAlpha;
+      skeletonRenderer.draw(animation.batcher, skeleton);
+      animation.batcher.end();
+
+      animation.shader.unbind();
+      requestAnimationFrame(animation.render);
+      // draw debug information
+    }
   }
 
   static resize() {
@@ -494,22 +510,24 @@ export class animation {
     }
 
     //magic resize
-    const centerX = bounds.offset.x + bounds.size.x / 2;
-    const centerY = bounds.offset.y + bounds.size.y / 2;
-    const scaleX = bounds.size.x / canvas.width;
-    const scaleY = bounds.size.y / canvas.height;
-    let scale = Math.max(scaleX, scaleY) * 1.2;
-    if (scale < 1) scale = 1;
-    const width = canvas.width * scale;
-    const height = canvas.height * scale;
+    if (bounds != undefined) {
+      const centerX = bounds.offset.x + bounds.size.x / 2;
+      const centerY = bounds.offset.y + bounds.size.y / 2;
+      const scaleX = bounds.size.x / canvas.width;
+      const scaleY = bounds.size.y / canvas.height;
+      let scale = Math.max(scaleX, scaleY) * 1.2;
+      if (scale < 1) scale = 1;
+      const width = canvas.width * scale;
+      const height = canvas.height * scale;
 
-    animation.mvp.ortho2d(
-      centerX - width / 2,
-      centerY - height / 2,
-      width,
-      height
-    );
-    animation.ctx.viewport(0, 0, canvas.width, canvas.height);
+      animation.mvp.ortho2d(
+        centerX - width / 2,
+        centerY - height / 2,
+        width,
+        height
+      );
+      animation.ctx.viewport(0, 0, canvas.width, canvas.height);
+    }
   }
 
   static printAnimationStatus() {
