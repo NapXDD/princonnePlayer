@@ -1,22 +1,22 @@
-import {
-  Skeleton,
-  AnimationState,
-  Vector2,
-} from "@esotericsoftware/spine-webgl";
+// import {
+//   Skeleton,
+//   AnimationState,
+//   Vector2,
+// } from "@esotericsoftware/spine-webgl";
 
-export interface loadSkeleton {
-  skeleton: Skeleton;
-  state: AnimationState;
-  bounds: { offset: Vector2; size: Vector2 };
-  premultipliedAlpha: boolean;
-}
+// export interface loadSkeleton {
+//   skeleton: Skeleton;
+//   state: AnimationState;
+//   bounds: { offset: Vector2; size: Vector2 };
+//   premultipliedAlpha: boolean;
+// }
 
-type MutableSkeleton = object;
+// type MutableSkeleton = object;
 
-type ChangeType<T, U> = T extends object ? U : T;
+// type ChangeType<T, U> = T extends object ? U : T;
 
-export type DynamicSkeleton = ChangeType<MutableSkeleton, loadSkeleton>;
+// export type DynamicSkeleton = ChangeType<MutableSkeleton, loadSkeleton>;
 
-export interface skeletons {
-  [code: string]: Record<"Binary", loadSkeleton>;
-}
+// export interface skeletons {
+//   [code: string]: Record<"Binary", loadSkeleton>;
+// }
