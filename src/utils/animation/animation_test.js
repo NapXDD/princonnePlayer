@@ -193,18 +193,31 @@ export class animation {
       if (animation.generalAdditionAnimations[baseId][additionAnimation.type]) {
         return doneCount++;
       }
-      const response = await getBinaryFile(
-        `assets/common/${baseId}_${additionAnimation.type}.cysp`
-      );
-      const data = {
-        id: baseId,
-        data: animation.sliceCyspAnimation(response.data),
-        type: additionAnimation.type,
-      };
-      if (
-        animation.generalAdditionAnimations[baseId][data.type] === undefined
-      ) {
-        animation.setGeneralAdditionAnimationData(data);
+      let data;
+      try {
+        const response = await getBinaryFile(
+          `assets/common/${baseId}_${additionAnimation.type}.cysp`
+        );
+
+        if (response.status === 200) {
+          data = {
+            id: baseId,
+            data: animation.sliceCyspAnimation(response.data),
+            type: additionAnimation.type,
+          };
+          if (
+            animation.generalAdditionAnimations[baseId][data.type] === undefined
+          ) {
+            animation.setGeneralAdditionAnimationData(data);
+            animation.loadClassAnimation();
+          }
+        }
+      } catch {
+        // data = {
+        //   id: "000000",
+        //   data: animation.sliceCyspAnimation(response.data),
+        //   type: additionAnimation.type,
+        // };
         animation.loadClassAnimation();
       }
 
@@ -325,6 +338,7 @@ export class animation {
       });
 
       //assume always no more than 128 animations
+
       let newBuffSize =
         animation.generalBattleSkeletonData[baseId].byteLength -
         64 +
