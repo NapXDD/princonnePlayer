@@ -76,7 +76,6 @@ export class animation {
     animation.shapes = new spine.webgl.ShapeRenderer(animation.ctx);
     load();
     function load() {
-      animation.loadDefaultAdditionAnimation();
       animation.loadCharaBaseData(loadingSkeleton);
       animation.lastFrameTime = Date.now() / 1000;
     }
@@ -176,8 +175,9 @@ export class animation {
             animation.loadAdditionAnimation(loadingSkeleton);
           }
         }
-      } catch {
+      } catch (err) {
         animation.loadAdditionAnimation(loadingSkeleton);
+        console.log(err);
       }
     } else {
       animation.loadAdditionAnimation(loadingSkeleton);
@@ -212,13 +212,14 @@ export class animation {
             animation.loadClassAnimation();
           }
         }
-      } catch {
+      } catch (err) {
         // data = {
         //   id: "000000",
         //   data: animation.sliceCyspAnimation(response.data),
         //   type: additionAnimation.type,
         // };
         animation.loadClassAnimation();
+        console.log(err);
       }
 
       // animation.loadClassAnimation();
@@ -279,7 +280,8 @@ export class animation {
           animation.setCurrentCharaAnimData(data);
           animation.loadTexture();
         }
-      } catch {
+      } catch (err) {
+        console.log(err);
         animation.loadTexture();
       }
     }
@@ -338,7 +340,6 @@ export class animation {
       });
 
       //assume always no more than 128 animations
-
       let newBuffSize =
         animation.generalBattleSkeletonData[baseId].byteLength -
         64 +

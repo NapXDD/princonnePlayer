@@ -1,7 +1,7 @@
 import { Box } from "@chakra-ui/react";
 import AnimationSelector from "./animation_selector";
 import CharaSelector from "./chara_selector";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { RootState } from "../../redux/store";
 import { useSelector } from "react-redux";
 /* eslint-disable */
@@ -13,7 +13,17 @@ export default function Tool() {
     (state: RootState) => state.loadingSkeleton
   );
 
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  const handleLoadData = async () => {
+    await animation.loadDefaultAdditionAnimation();
+  };
+
   useEffect(() => {
+    if (!isLoaded) {
+      setIsLoaded(true);
+      handleLoadData();
+    }
     animation.init(loadingSkeleton);
   }, [loadingSkeleton]);
 
