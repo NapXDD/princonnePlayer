@@ -336,8 +336,6 @@ export class animation {
       additionAnimations.forEach((i) => {
         animationCount += i.count;
       });
-      console.log(animation.generalBattleSkeletonData[baseId]);
-      console.log(baseId);
       //assume always no more than 128 animations
       let newBuffSize =
         animation.generalBattleSkeletonData[baseId].byteLength -
