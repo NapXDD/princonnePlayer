@@ -13,6 +13,8 @@ export default function Tool() {
     (state: RootState) => state.loadingSkeleton
   );
 
+  const unitState = useSelector((state: RootState) => state.unitState);
+
   const [isLoaded, setIsLoaded] = useState(false);
 
   const handleLoadData = async () => {
@@ -24,11 +26,18 @@ export default function Tool() {
       setIsLoaded(true);
       handleLoadData();
     }
+
     animation.init(loadingSkeleton);
   }, [loadingSkeleton]);
 
+  useEffect(() => {
+    const animationQueue = unitState.animation.split(",");
+    animation.animationQueue.push(animationQueue[0]);
+    animation.speedFactor = unitState.animationSpeed;
+  }, [unitState]);
+
   return (
-    <Box className="flex-col flex-wrap justify-center items-center">
+    <Box className="flex-col flex-wrap justify-center items-center absolute w-[100%] bg-white">
       <CharaSelector />
       <AnimationSelector />
     </Box>

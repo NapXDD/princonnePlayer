@@ -283,8 +283,7 @@ export class animation {
         }
         animation.loadTexture();
       } catch (err) {
-        const isFetched = false;
-        animation.loadTexture(isFetched);
+        return;
       }
     }
   }
@@ -523,8 +522,10 @@ export class animation {
     // const useBig = screen.width * devicePixelRatio > 1280;
     const canvas = animation.canvas;
     const bounds = animation.skeleton.bounds;
-    const w = canvas.clientWidth * devicePixelRatio;
-    const h = canvas.clientHeight * devicePixelRatio;
+    // const w = animation.canvas.clientWidth * devicePixelRatio;
+    // const h = animation.canvas.clientHeight * devicePixelRatio;
+    const w = window.innerWidth * devicePixelRatio;
+    const h = window.innerHeight * devicePixelRatio;
     if (canvas.width !== w || canvas.height !== h) {
       canvas.width = w;
       canvas.height = h;

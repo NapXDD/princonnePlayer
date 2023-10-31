@@ -3,5 +3,5 @@ import { useEffect } from "react";
 export default function CanvasScreen() {
   useEffect(() => {}, []);
 
-  return <canvas id="player" width={0} height={0}></canvas>;
+  return <canvas id="player" className="w-[100%] h-[100%]"></canvas>;
 }
