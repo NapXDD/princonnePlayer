@@ -17,6 +17,7 @@ export class animation {
     type: "0",
     data: { count: 0, data: new Uint8Array([0]) },
   };
+  static charaBase = false;
   static skeleton = {};
   static animationQueue = [];
   static currentTexture;
@@ -79,6 +80,7 @@ export class animation {
       animation.loadCharaBaseData(loadingSkeleton);
       animation.lastFrameTime = Date.now() / 1000;
     }
+    animation.printAnimationStatus();
   }
 
   static sliceCyspAnimation(buffer) {
@@ -166,6 +168,7 @@ export class animation {
           `assets/common/${baseId}_CHARA_BASE.cysp`
         );
         if (response.status === 200) {
+          animation.charaBase = true;
           const data = {
             id: baseId,
             data: response.data,
@@ -177,6 +180,7 @@ export class animation {
         }
       } catch (err) {
         if (err.request.status === 404) {
+          animation.charaBase = false;
           animation.loadAdditionAnimation(loadingSkeleton);
         }
       }
@@ -187,7 +191,8 @@ export class animation {
 
   static loadAdditionAnimation(loadingSkeleton) {
     let doneCount = 0;
-    const baseId = loadingSkeleton.baseId;
+    let baseId = loadingSkeleton.id;
+
     animation.generalAdditionAnimations[baseId] =
       animation.generalAdditionAnimations[baseId] || {};
     additionAnimations.map(async (additionAnimation) => {
@@ -228,7 +233,7 @@ export class animation {
   }
 
   static async loadClassAnimation() {
-    const currentClass = store.getState().classAnimData;
+    const currentClass = store.getState().loadingSkeleton.info.type;
     if (currentClass === animation.currentClassAnimData.type) {
       animation.loadCharaSkillAnimation();
     } else {
@@ -278,8 +283,8 @@ export class animation {
         }
         animation.loadTexture();
       } catch (err) {
-        console.log(err);
-        animation.loadTexture();
+        const isFetched = false;
+        animation.loadTexture(isFetched);
       }
     }
   }
@@ -322,8 +327,12 @@ export class animation {
 
       // eslint-disable-next-line no-undef
       const atlasLoader = new spine.AtlasAttachmentLoader(atlas);
-      // const baseId = loadingSkeleton.baseId;
-      const baseId = "000000";
+      let baseId;
+      if (this.charaBase === true) {
+        baseId = loadingSkeleton.baseId;
+      } else if (this.charaBase === false) {
+        baseId = "000000";
+      }
       const additionAnimations = Object.values(
         animation.generalAdditionAnimations[baseId]
       );
