@@ -176,8 +176,9 @@ export class animation {
           }
         }
       } catch (err) {
-        animation.loadAdditionAnimation(loadingSkeleton);
-        console.log(err);
+        if (err.request.status === 404) {
+          animation.loadAdditionAnimation(loadingSkeleton);
+        }
       }
     } else {
       animation.loadAdditionAnimation(loadingSkeleton);
@@ -213,13 +214,9 @@ export class animation {
           }
         }
       } catch (err) {
-        // data = {
-        //   id: "000000",
-        //   data: animation.sliceCyspAnimation(response.data),
-        //   type: additionAnimation.type,
-        // };
-        animation.loadClassAnimation();
-        console.log(err);
+        if (err.response.status === 404) {
+          animation.loadClassAnimation();
+        }
       }
 
       // animation.loadClassAnimation();
@@ -278,8 +275,8 @@ export class animation {
           animation.currentCharaAnimData.data !== data.data
         ) {
           animation.setCurrentCharaAnimData(data);
-          animation.loadTexture();
         }
+        animation.loadTexture();
       } catch (err) {
         console.log(err);
         animation.loadTexture();
@@ -325,7 +322,8 @@ export class animation {
 
       // eslint-disable-next-line no-undef
       const atlasLoader = new spine.AtlasAttachmentLoader(atlas);
-      const baseId = loadingSkeleton.baseId;
+      // const baseId = loadingSkeleton.baseId;
+      const baseId = "000000";
       const additionAnimations = Object.values(
         animation.generalAdditionAnimations[baseId]
       );
@@ -338,7 +336,8 @@ export class animation {
       additionAnimations.forEach((i) => {
         animationCount += i.count;
       });
-
+      console.log(animation.generalBattleSkeletonData[baseId]);
+      console.log(baseId);
       //assume always no more than 128 animations
       let newBuffSize =
         animation.generalBattleSkeletonData[baseId].byteLength -
