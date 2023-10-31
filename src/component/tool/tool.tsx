@@ -6,7 +6,7 @@ import { RootState } from "../../redux/store";
 import { useSelector } from "react-redux";
 /* eslint-disable */
 // @ts-ignore
-import { animation } from "../../utils/animation/animation_test.js";
+import { animation } from "../../utils/animation/animation.js";
 
 export default function Tool() {
   const loadingSkeleton = useSelector(

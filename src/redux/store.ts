@@ -6,8 +6,6 @@ import windowLoadingReducer from "./features/window/loading";
 import classMapReducer from "./features/classMap/classMap";
 import classAnimDataReducer from "./features/classAnimData/classAnimData";
 import charaAnimationReducer from "./features/charaAnimData/charaAnimData";
-import generalAdditionAnimationsReducer from "./features/generalAdditionAnimations/generalAdditionAnimations";
-import generalBattleSkeonDataReducer from "./features/generalBattleSkeletonData/generalBattleSkeletonData";
 
 export const store = configureStore({
   reducer: {
@@ -18,8 +16,6 @@ export const store = configureStore({
     classMap: classMapReducer,
     classAnimData: classAnimDataReducer,
     charaAnimation: charaAnimationReducer,
-    generalAdditionAnimations: generalAdditionAnimationsReducer,
-    generalBattleSkeonData: generalBattleSkeonDataReducer,
   },
   devTools: {},
 });
